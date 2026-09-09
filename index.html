@@ -23,6 +23,7 @@
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
+            position: relative; /* Added relative positioning for absolute children */
         }
         .page {
             display: none;
@@ -61,8 +62,11 @@
         <h2>Package Mailing Kiosk</h2>
         <p>Place item on scale</p>
         <p id="weight-display" style="text-align: center; font-size: 24px;">Waiting for package...</p>
-        <h1 style="text-align: center; margin: 0;">⬇</h1>
+        
         <button id="btn-confirm-weight" disabled onclick="goToPage('page2')">Confirm</button>
+        
+        <!-- Arrow moved below button and pinned to bottom -->
+        <h1 style="position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; margin: 0;">⬇</h1>
     </div>
 
     <!-- PAGE 2: Address -->
