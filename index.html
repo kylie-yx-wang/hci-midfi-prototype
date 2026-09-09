@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mail Kiosk Prototype</title>
+    <style>
+        /* Minimal CSS to simulate a vertical tablet/phone screen and black out the rest */
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #kiosk-screen {
+            background-color: #ffffff;
+            color: black;
+            width: 375px; /* Mobile width */
+            height: 667px; /* Mobile height */
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            position: relative;
+        }
+        .page {
+            display: none; /* Hide all pages by default */
+        }
+        .active {
+            display: block; /* Show active page */
+        }
+        button, input {
+            font-size: 16px;
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .option-label {
+            display: block;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .small-text {
+            font-size: 12px;
+            color: gray;
+        }
+        .review-item {
+            margin-bottom: 15px;
+        }
+        .edit-btn {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="kiosk-screen">
+
+    <!-- PAGE 1: Weighing -->
+    <div id="page1" class="page active">
+        <h2>Package Mailing Kiosk</h2>
+        <p>Place item on scale</p>
+        <h1 style="text-align: center;">⬇</h1>
+        <p id="weight-display" style="text-align: center; font-size: 24px;">Waiting for package...</p>
+        <button id="btn-confirm-weight" disabled onclick="goToPage('page2')">Confirm</button>
+    </div>
+
+    <!-- PAGE 2: Address -->
+    <div id="page2" class="page">
+        <h2>Where is this going?</h2>
+        <p><em>(Tap the inputs below to auto-fill)</em></p>
+        <label>Zip Code:</label>
+        <input type="text" id="input-zip" placeholder="Tap to enter zip" onclick="autoFillAddress()">
+        
+        <label>Rest of Address:</label>
+        <input type="text" id="input-address" placeholder="Tap to enter address" onclick="autoFillAddress()">
+        
+        <button onclick="goToPage('page3')">Next</button>
+    </div>
+
+    <!-- PAGE 3: Mailing Options -->
+    <div id="page3" class="page">
+        <h2>Select Mailing Option:</h2>
+        
+        <label class="option-label">
+            <input type="radio" name="delivery" value="Overnight" data-price="12.00">
+            $12.00 Overnight
+            <div class="small-text">arrives Sep 11</div>
+        </label>
+        
+        <label class="option-label">
+            <input type="radio" name="delivery" value="2-day" data-price="8.00">
+            $8.00 2 day
+            <div class="small-text">arrives Sep 12-13</div>
+        </label>
+        
+        <label class="option-label">
+            <input type="radio" name="delivery" value="Ground" data-price="4.99">
+            $4.99 ground
+            <div class="small-text">arrives Sep 15-18</div>
+        </label>
+
+        <button onclick="saveDeliveryAndGoToReview()">Next</button>
+    </div>
+
+    <!-- PAGE 4: Review and Pay -->
+    <div id="page4" class="page">
+        <h2>Review Your Order</h2>
+        
+        <div class="review-item">
+            <strong>Weight:</strong> <span id="review-weight"></span>
+            <button class="edit-btn" onclick="goToPage('page1')">Edit</button>
+        </div>
+        <div class="review-item">
+            <strong>Address:</strong> <span id="review-address"></span>
+            <button class="edit-btn" onclick="goToPage('page2')">Edit</button>
+        </div>
+        <div class="review-item">
+            <strong>Delivery option:</strong> <span id="review-option"></span>
+            <button class="edit-btn" onclick="goToPage('page3')">Edit</button>
+        </div>
+        <div class="review-item">
+            <strong>Total:</strong> $<span id="review-total"></span>
+        </div>
+
+        <button onclick="resetKiosk()" style="background-color: #ffcccc;">Cancel Order</button>
+        <button onclick="alert('Payment Successful! Thank you for using the kiosk.')" style="background-color: #ccffcc; height: 80px; font-size: 20px;">Tap to pay ➡</button>
+    </div>
+
+</div>
+
+<script>
+    // Variables to store user data
+    let currentWeight = 0;
+    let selectedAddress = "";
+    let selectedOption = "";
+    let selectedPrice = "0.00";
+
+    // Navigation function
+    function goToPage(pageId) {
+        // Hide all pages
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => page.classList.remove('active'));
+        
+        // Show target page
+        document.getElementById(pageId).classList.add('active');
+
+        // If going to page 1, trigger the scale simulation
+        if (pageId === 'page1') {
+            simulateScale();
+        }
+    }
+
+    // Simulate placing a package on a scale
+    function simulateScale() {
+        document.getElementById('weight-display').innerText = "Reading scale...";
+        document.getElementById('btn-confirm-weight').disabled = true;
+
+        setTimeout(() => {
+            // Generate random weight between 0.5 and 10 kg
+            currentWeight = (Math.random() * 9.5 + 0.5).toFixed(2);
+            document.getElementById('weight-display').innerText = currentWeight + " kg";
+            document.getElementById('btn-confirm-weight').disabled = false;
+        }, 2500); // Waits 2.5 seconds
+    }
+
+    // Fake keyboard auto-fill function
+    function autoFillAddress() {
+        document.getElementById('input-zip').value = "15213";
+        document.getElementById('input-address').value = "100 Main St, Pittsburgh";
+    }
+
+    // Save selected mailing option and proceed to review
+    function saveDeliveryAndGoToReview() {
+        const options = document.getElementsByName('delivery');
+        let optionSelected = false;
+        
+        for (const option of options) {
+            if (option.checked) {
+                selectedOption = option.value;
+                selectedPrice = option.getAttribute('data-price');
+                optionSelected = true;
+                break;
+            }
+        }
+
+        if (!optionSelected) {
+            alert("Please select a mailing option.");
+            return;
+        }
+
+        // Combine address
+        const zip = document.getElementById('input-zip').value;
+        const address = document.getElementById('input-address').value;
+        selectedAddress = address + " " + zip;
+
+        // Populate Page 4
+        document.getElementById('review-weight').innerText = currentWeight + " kg";
+        document.getElementById('review-address').innerText = selectedAddress || "100 Main St, 15213 Pittsburgh"; // default fallback
+        document.getElementById('review-option').innerText = selectedOption;
+        document.getElementById('review-total').innerText = selectedPrice;
+
+        goToPage('page4');
+    }
+
+    // Reset the whole kiosk (Cancel button)
+    function resetKiosk() {
+        currentWeight = 0;
+        document.getElementById('input-zip').value = "";
+        document.getElementById('input-address').value = "";
+        const options = document.getElementsByName('delivery');
+        options.forEach(opt => opt.checked = false);
+        goToPage('page1');
+    }
+
+    // Start simulation on initial load
+    window.onload = simulateScale;
+</script>
+
+</body>
+</html>
